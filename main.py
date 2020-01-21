@@ -44,12 +44,12 @@ class Bomb(sprite.Sprite):
     def image(self):
         return self.frames[self.frame_act]
 
-
 class Robot(sprite.Sprite):
     speed = 5
     pictures = ['robot_r01.png', 'robot_r02.png', 'robot_r03.png', 'robot_r04.png']
     w = 64
     h = 68
+    lives = 3
 
     def __init__(self, x=0, y=0):
         self.x = x
@@ -91,6 +91,13 @@ class Robot(sprite.Sprite):
     def go_left(self):
         self.rect.x = max(0, self.rect.x - self.speed)
         self.change_frame()
+
+    def comprobarToques(self, group):
+        colisiones = sprite.spritecollide(self, group, True)
+        for b in colisiones:
+            self.lives -= 1
+
+        return self.lives
     
     
     @property
@@ -156,14 +163,11 @@ class Game:
             self.handleEvents()
             
             #Comprobar si el robot toca una bomba
+            if self.robot.comprobarToques(self.bombs_group) == 0:
+                self.gameOver()
 
             self.screen.fill(self.background_color)
-            '''
-            self.screen.blit(self.robot.image, self.robot.position)
-            for b in self.bombas:
-                b.update(dt)
-                self.screen.blit(b.image, b.position)
-            '''
+
             self.all_group.update(dt)
             self.all_group.draw(self.screen)
 
