@@ -6,12 +6,18 @@ from random import randint
 init()
 FPS = 60
 
-class Bomb:
+class Bomb(sprite.Sprite):
     pictures = ['bomb_01.png', 'bomb_02.png', 'bomb_03.png', 'bomb_04.png']
+    w = 44
+    h = 42
 
     def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
+
+        sprite.Sprite.__init__(self)
+
+        self.rect = Rect(self.x, self.y, self.w, self.h)
 
         self.frames = []
         for pict in self.pictures:
@@ -33,23 +39,25 @@ class Bomb:
             if self.frame_act == self.num_frames:
                 self.frame_act = 0
             #self.frame_act = (self.frame_act + 1) % self.num_frames
-
-    @property
-    def position(self):
-        return self.x, self.y
-    
+  
     @property
     def image(self):
         return self.frames[self.frame_act]
 
 
-class Robot:
+class Robot(sprite.Sprite):
     speed = 5
     pictures = ['robot_r01.png', 'robot_r02.png', 'robot_r03.png', 'robot_r04.png']
+    w = 64
+    h = 68
 
     def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
+
+        sprite.Sprite.__init__(self)
+
+        self.rect = Rect(self.x, self.y, self.w, self.h)
 
         self.frames = []
         for pict in self.pictures:
@@ -69,24 +77,21 @@ class Robot:
 
 
     def go_up(self):
-        self.y = max(0, self.y - self.speed)
+        self.rect.y = max(0, self.rect.y - self.speed)
         self.change_frame()
 
     def go_down(self):
-        self.y = min(600, self.y + self.speed)
+        self.rect.y = min(600, self.rect.y + self.speed)
         self.change_frame()
 
     def go_right(self):
-        self.x = min(800, self.x + self.speed)
+        self.rect.x = min(800, self.rect.x + self.speed)
         self.change_frame()
     
     def go_left(self):
-        self.x = max(0, self.x - self.speed)
+        self.rect.x = max(0, self.rect.x - self.speed)
         self.change_frame()
     
-    @property
-    def position(self):
-        return self.x, self.y
     
     @property
     def image(self):
@@ -101,13 +106,19 @@ class Game:
 
         self.background_color = (150, 150, 222)
 
-        self.robot = Robot(400, 300)
+        self.player_group = sprite.Group()
+        self.bombs_group = sprite.Group()
+        self.all_group = sprite.Group()
 
-        self.bombas = []
+        self.robot = Robot(400, 300)
+        self.player_group.add(self.robot)
 
         for i in range(5):
-            self.bomb = Bomb(randint(0, 750), randint(0, 550))
-            self.bombas.append(self.bomb)
+            bomb = Bomb(randint(0, 750), randint(0, 550))
+            self.bombs_group.add(bomb)
+
+        self.all_group.add(self.robot, self.bombs_group)
+        
 
     def gameOver(self):
         quit()
@@ -143,12 +154,18 @@ class Game:
             dt = self.clock.tick(FPS)
 
             self.handleEvents()
+            
+            #Comprobar si el robot toca una bomba
 
             self.screen.fill(self.background_color)
+            '''
             self.screen.blit(self.robot.image, self.robot.position)
             for b in self.bombas:
                 b.update(dt)
                 self.screen.blit(b.image, b.position)
+            '''
+            self.all_group.update(dt)
+            self.all_group.draw(self.screen)
 
             display.flip()
 
